@@ -103,18 +103,22 @@ if __name__ == "__main__":
 	df = df.drop(["name"], axis=1)
 	X = df.drop(["status"], axis=1)
 	y = df["status"]
-	
+	"""
 	print("SEM NORMALIZACAO")
 	ans = classify(classifiers, X, y, 0.3, 100, False)
 	sumary(ans)
-	
+	"""
 	print("COM NORMALIZACAO")
 	ans = classify(classifiers, X, y, 0.3, 100, True)
 	sumary(ans)
-	
+	"""
+	print("COM NORMALIZACAO E LDA")
 	for n in range(1, 20):
-		print("COM NORMALIZACAO E LDA n={}".format(n))
-		X_red = reduction_lda(X, y, n)
+		print(n)
+		X_red = reduction_pca(X, n)
+		#print(X_red.shape)
+		#print(np.cov(X_red.T))
+		#print(np.var(X_red))
 		ans = classify(classifiers, X_red, y, 0.3, 100, True)
 		sumary(ans)
-	
+	"""
