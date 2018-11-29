@@ -1,23 +1,23 @@
 """
-TCC1.py
+tcc1.py
 Artur Rodrigues Rocha Neto
 artur.rodrigues26@gmail.com
 NOV/2018
 
 Código-fonte do Trabalho Computacional #01 de Reconhecimento de Padrões 2018.2
-Requisitos: Python 3.5+, numpy, pandas, matplotlib, scikit-learn
+Requisitos: Python 3.5+, numpy, pandas, matplotlib, scikit-learn, seaborn
 """
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import confusion_matrix
-from sklearn.neighbors import KNeighborsClassifier as NN
-from sklearn.neighbors import NearestCentroid as DMC
-from sklearn.naive_bayes import GaussianNB as CQG
-from sklearn.model_selection import train_test_split as data_split
 from sklearn.decomposition import PCA
+from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import StandardScaler
+from sklearn.naive_bayes import GaussianNB as CQG
+from sklearn.neighbors import NearestCentroid as DMC
+from sklearn.neighbors import KNeighborsClassifier as NN
+from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 def reduction_pca(X, n):
@@ -103,22 +103,12 @@ if __name__ == "__main__":
 	df = df.drop(["name"], axis=1)
 	X = df.drop(["status"], axis=1)
 	y = df["status"]
-	"""
+	
 	print("SEM NORMALIZACAO")
 	ans = classify(classifiers, X, y, 0.3, 100, False)
 	sumary(ans)
-	"""
+	
 	print("COM NORMALIZACAO")
 	ans = classify(classifiers, X, y, 0.3, 100, True)
 	sumary(ans)
-	"""
-	print("COM NORMALIZACAO E LDA")
-	for n in range(1, 20):
-		print(n)
-		X_red = reduction_pca(X, n)
-		#print(X_red.shape)
-		#print(np.cov(X_red.T))
-		#print(np.var(X_red))
-		ans = classify(classifiers, X_red, y, 0.3, 100, True)
-		sumary(ans)
-	"""
+	
