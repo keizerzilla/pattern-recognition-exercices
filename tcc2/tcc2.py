@@ -11,7 +11,6 @@ Requisitos: Python 3.5+, numpy, pandas, matplotlib, scikit-learn
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
 from sklearn.cluster import k_means
 from sklearn.decomposition import PCA
 from sklearn.metrics import confusion_matrix
@@ -23,13 +22,6 @@ from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
 def kmeans_cluster(X, n=1000):
-	"""
-	kmeans = KMeans(n_clusters=n, n_jobs=-1)
-	X_new = kmeans.fit_transform(X)
-	
-	return X_new
-	"""
-	
 	X_new, _, _ = k_means(X, n_clusters=n, n_jobs=-1)
 	
 	return X_new
@@ -74,7 +66,7 @@ def classify(classifiers, X, y, test_size, rounds, normalize=False):
 	
 	return ans
 
-def reduction():
+def tcc2_reduction():
 	df = pd.read_csv("data/default-of-credit-card-clients.csv")
 	df = df.drop(["ID"], axis=1)
 	X0 = df.loc[df["default-payment-next-month"] == 0]
@@ -98,14 +90,16 @@ def reduction():
 	X = pd.concat([X0, X1])
 	y = pd.concat([y0, y1])
 	
-	X0.to_csv("X0.csv", index=False)
-	X1.to_csv("X1.csv", index=False)
-	X.to_csv("X.csv", index=False)
-	y.to_csv("y.csv", index=False)
+	X0.to_csv("data/X0.csv", index=False)
+	X1.to_csv("data/X1.csv", index=False)
+	X.to_csv("data/X.csv", index=False)
+	y.to_csv("data/y.csv", index=False)
 	print("clustered data saved")
 
-def sumary(ans):
+def sumary(ans, title="SUMARY"):
 	size = 70
+	print("-"*size)
+	print("[[ {} ]]".format(title))
 	print("-"*size)
 	print("CLASSIF\t\tMEAN\tMEDIAN\tMINV\tMAXV\tSTD\tSENS\tSPEC")
 	print("-"*size)
@@ -123,6 +117,7 @@ def sumary(ans):
 		                                                  spec))
 	
 	print("-"*size)
+	print()
 
 if __name__ == "__main__":
 	classifiers = {"KNN" : KNN(n_neighbors=1),
@@ -131,24 +126,23 @@ if __name__ == "__main__":
 	
 	df = pd.read_csv("data/default-of-credit-card-clients.csv")
 	df = df.drop(["ID"], axis=1)
+	X = df.drop(["default-payment-next-month"], axis=1)
+	y = df["default-payment-next-month"]
+	ans = classify(classifiers, X, y, 0.3, 100)
+	sumary(ans, "ORIGIAL - SEM NORMALIZAR")
 	
-	X0 = pd.read_csv("X0.csv")
-	y0 = pd.DataFrame(data=np.zeros((len(X0.index), ), dtype=np.int))
+	X0 = pd.read_csv("data/X0.csv")
+	X1 = pd.read_csv("data/X1.csv")
+	X = pd.concat([X0, X1])
+	y = np.ravel(pd.read_csv("data/y.csv"))
+	ans = classify(classifiers, X, y, 0.3, 100)
+	sumary(ans, "REDUZIDO - SEM NORMALIZAR")
 	
-	X1 = df.loc[df["default-payment-next-month"] == 1]
-	y1 = X1["default-payment-next-month"]
-	X1 = X1.drop(["default-payment-next-month"], axis=1)
 	
-	print(X0.shape)
-	print(X1.shape)
 	
-	X = pd.concat([X0, X1], sort=False)
-	y = np.ravel(pd.concat([y0, y1]))
 	
-	print(X.shape)
 	
-	#ans = classify(classifiers, X, y, 0.3, 100)
-	#sumary(ans)
+	
 	
 	
 	
