@@ -20,14 +20,27 @@ from sklearn.neighbors import KNeighborsClassifier as NN
 from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 
-def reduction_pca(X, n):
+"""
+Os classificadores usados ao longo do código inteiro
+Melhores configurações de hiper-parâmetros and shit \m/
+"""
+classifiers = {"NN"  : NN(n_neighbors=1),
+	           "DMC" : DMC(),
+	           "CQG" : CQG()}
+
+"""
+Proporcao dos dados para uso no teste
+"""
+test_rate = 0.3
+
+def reduction_pca(X, y=None, n=None):
 	pca = PCA(n_components=n)
 	pca.fit(X)
 	X = pca.transform(X)
 	
 	return X
 
-def reduction_lda(X, y, n):
+def reduction_lda(X, y, n=None):
 	pca = LDA(n_components=n)
 	pca.fit(X, y)
 	X = pca.transform(X)
@@ -48,16 +61,13 @@ def do_normalize(X_train, X_test):
 	
 	return X_train, X_test
 
-def classify(classifiers, X, y, test_size, rounds, normalize):
+def classify(classifiers, X, y, test_size, rounds, normalize=False):
 	ans = {key: {"score" : [], "sens" : [], "spec" : []}
 	       for key, value in classifiers.items()}
 	
 	for i in range(rounds):
+		X_train, X_test, y_train, y_test = data_split(X, y, test_size=test_size)
 		for name, classifier in classifiers.items():
-			X_train, X_test, y_train, y_test = data_split(X, y,
-			                                              test_size=test_size,
-			                                              shuffle=True)
-			
 			if normalize:
 				X_train, X_test = do_normalize(X_train, X_test)
 			
@@ -73,7 +83,46 @@ def classify(classifiers, X, y, test_size, rounds, normalize):
 			ans[name]["spec"].append(spec)
 	
 	return ans
+
+def find_best_reduction(name, to_run):
+	df = pd.read_csv("data/parkinsons.data")
+	df = df.drop(["name"], axis=1)
+	X = df.drop(["status"], axis=1)
+	y = df["status"]
 	
+	data = {"NN" : [], "DMC" : [], "CQG" : []}
+	anses = []
+	for n in range(1, len(X.columns)+1):
+		X_red = to_run(X, y, n)
+		ans = classify(classifiers, X_red, y, test_rate, 100, True)
+		anses.append(ans)
+		
+		data["NN"].append(round(np.mean(ans["NN"]["score"])*100, 2))
+		data["DMC"].append(round(np.mean(ans["DMC"]["score"])*100, 2))
+		data["CQG"].append(round(np.mean(ans["CQG"]["score"])*100, 2))
+		
+		#print("{}: shape={}, n={}, OK".format(name, X_red.shape, n))
+	
+	labels = [str(n) for n in range(1, len(X.columns)+1)]
+	df = pd.DataFrame.from_dict(data)
+	
+	ax = df.plot()
+	plt.xticks(np.arange(len(X.columns)+1), labels=labels)
+	plt.suptitle("Evolução da precisão em função do {}".format(name))
+	plt.xlabel("Número de Componentes")
+	plt.ylabel("Precisão (%)")
+	plt.ylim((65.0, 90.0))
+	plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
+               ncol=3, fancybox=True, shadow=True)
+	
+	for d in data:
+		max_v = max(data[d])
+		n = data[d].index(max_v)
+		print("{}: max: {}, n: {}".format(d, max_v, n+1))
+		sumary(anses[n])
+	
+	plt.show()
+
 def sumary(ans):
 	size = 70
 	print("-"*size)
@@ -95,20 +144,15 @@ def sumary(ans):
 	print("-"*size)
 
 if __name__ == "__main__":
-	classifiers = {"NN"  : NN(n_neighbors=1),
-	               "DMC" : DMC(),
-	               "CQG" : CQG()}
-	
 	df = pd.read_csv("data/parkinsons.data")
 	df = df.drop(["name"], axis=1)
 	X = df.drop(["status"], axis=1)
 	y = df["status"]
 	
-	print("SEM NORMALIZACAO")
-	ans = classify(classifiers, X, y, 0.3, 100, False)
+	X = reduction_lda(X, y, 1)
+	ans = classify(classifiers, X, y, test_rate, 100, True)
 	sumary(ans)
 	
-	print("COM NORMALIZACAO")
-	ans = classify(classifiers, X, y, 0.3, 100, True)
-	sumary(ans)
+	#find_best_reduction("PCA (normalizado)", reduction_pca)
+	
 	
