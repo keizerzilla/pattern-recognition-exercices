@@ -1,5 +1,5 @@
 """
-TC1.py
+tc1.py
 Artur Rodrigues Rocha Neto
 artur.rodrigues26@gmail.com
 NOV/2018
@@ -18,7 +18,7 @@ from recpad import *
 classifiers = {"NN"  : NN(n_neighbors=1),
                "DMC" : DMC(),
                "CQG" : CQG(store_covariance=True)}
-dataset = "TC1/data/parkinsons.data"
+dataset = "data/parkinsons.data"
 test_rate = 0.3
 rounds = 100
 
@@ -33,7 +33,7 @@ sumary(ans, "analisando matriz de confusao")
 """
 ans = classify(classifiers, X, y, test_rate, rounds)
 sumary(ans, "Desempenho dos classificadores sem reducao de dimensionalidade")
-find_best_pca(dataset, classifiers, test_rate, "TC1/figures/precisao-pca.png")
+find_best_pca(dataset, classifiers, test_rate, "figures/precisao-pca.png")
 X_lda = reduction_lda(X, y, 1)
 ans = classify(classifiers, X_lda, y, test_rate, rounds)
 sumary(ans, "Desempenho dos classificadores com reducao usando LDA")

@@ -8,6 +8,7 @@ Sobre: conjunto de funções criadas para a resolução dos trabalhos computacio
 Requisitos: Python 3.5+, numpy, pandas, matplotlib, scikit-learn, seaborn
 """
 
+import sys
 import numpy as np
 import pandas as pd
 import seaborn as sb
@@ -55,14 +56,24 @@ def do_normalize(X_train, X_test):
 	
 	return X_train, X_test
 
-def classify(classifiers, X, y, test_size, rounds, normalize=False):
+def progress(count, total, status=''):
+	bar_len = 50
+	filled_len = int(round(bar_len * count / float(total)))
+	
+	percents = round(100.0 * count / float(total), 1)
+	bar = "=" * filled_len + "-" * (bar_len - filled_len)
+	
+	sys.stdout.write("[%s] %s%s %s\r" % (bar, percents, "%", status))
+	sys.stdout.flush()
+
+def classify(classifiers, X, y, test_size, rounds, verbose=False, scale=False):
 	ans = {key: {"score" : [], "sens" : [], "spec" : []}
 	       for key, value in classifiers.items()}
 	
 	for i in range(rounds):
 		X_train, X_test, y_train, y_test = data_split(X, y, test_size=test_size)
 		for name, classifier in classifiers.items():
-			if normalize:
+			if scale:
 				X_train, X_test = do_normalize(X_train, X_test)
 			
 			classifier.fit(X_train, y_train)
@@ -77,9 +88,8 @@ def classify(classifiers, X, y, test_size, rounds, normalize=False):
 			ans[name]["sens"].append(sens)
 			ans[name]["spec"].append(spec)
 			
-			#sb.heatmap(confmatrix, cmap="Purples", annot=True, fmt="d")
-			#plt.title("classificador: {}".format(name))
-			#plt.show()
+			if verbose:
+				progress(i+1, rounds, "OK")
 	
 	return ans
 
@@ -91,7 +101,8 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 	
 	data = {"NN" : [], "DMC" : [], "CQG" : []}
 	anses = []
-	for n in range(1, len(X.columns)+1):
+	vector = range(1, len(X.columns)+1)
+	for n in vector:
 		X_red = reduction_pca(X, y, n)
 		ans = classify(classifiers, X_red, y, test_rate, 100, True)
 		anses.append(ans)
@@ -100,7 +111,7 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 		data["DMC"].append(round(np.mean(ans["DMC"]["score"])*100, 2))
 		data["CQG"].append(round(np.mean(ans["CQG"]["score"])*100, 2))
 	
-	labels = [str(n) for n in range(1, len(X.columns)+1)]
+	labels = [str(n) for n in vector]
 	df = pd.DataFrame.from_dict(data)
 	
 	ax = df.plot()
@@ -109,7 +120,7 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 	plt.xlabel("Número de Componentes")
 	plt.ylabel("Precisão (%)")
 	plt.ylim((65.0, 95.0))
-	plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.05),
+	plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
                ncol=3, fancybox=True, shadow=True)
 	
 	for d in data:
@@ -120,37 +131,7 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 	
 	plt.savefig(save_plot)
 
-def tc2_reduction_EDITAR():
-	df = pd.read_csv("data/default-of-credit-card-clients.csv")
-	df = df.drop(["ID"], axis=1)
-	X0 = df.loc[df["default-payment-next-month"] == 0]
-	X0 = X0.drop(["default-payment-next-month"], axis=1)
-	X1 = df.loc[df["default-payment-next-month"] == 1]
-	X1 = X1.drop(["default-payment-next-month"], axis=1)
-	
-	print("shape class [0] pre-kmeans: {}".format(X0.shape))
-	print("shape class [1] pre-kmeans: {}".format(X1.shape))
-	
-	print("clustering X0"); X0_new = kmeans_cluster(X0); print("X0 done");
-	print("clustering X1"); X1_new = kmeans_cluster(X1); print("X1 done");
-	
-	print("shape class [0] pos-kmeans: {}".format(X0_new.shape))
-	print("shape class [1] pos-kmeans: {}".format(X1_new.shape))
-	
-	X0 = pd.DataFrame(data=X0_new)
-	X1 = pd.DataFrame(data=X1_new)
-	y0 = pd.DataFrame(data=np.zeros((len(X0.index), ), dtype=np.int))
-	y1 = pd.DataFrame(data=np.ones((len(X1.index), ), dtype=np.int))
-	X = pd.concat([X0, X1])
-	y = pd.concat([y0, y1])
-	
-	X0.to_csv("data/X0.csv", index=False)
-	X1.to_csv("data/X1.csv", index=False)
-	X.to_csv("data/X.csv", index=False)
-	y.to_csv("data/y.csv", index=False)
-	print("clustered data saved")
-
-def sumary(ans, title):
+def sumary(ans, title="Vizualizando resposta de classificacao"):
 	size = 70
 	separator = "-"
 	
