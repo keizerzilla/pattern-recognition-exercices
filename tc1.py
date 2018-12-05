@@ -15,6 +15,8 @@ Requisitos: recpad.py
 
 from recpad import *
 
+sb.set()
+
 classifiers = {"NN"  : NN(n_neighbors=1),
                "DMC" : DMC(),
                "CQG" : CQG(store_covariance=True)}
@@ -27,29 +29,68 @@ df = df.drop(["name"], axis=1)
 X = df.drop(["status"], axis=1)
 y = df["status"]
 
-ans = classify(classifiers, X, y, test_rate, 1)
-sumary(ans, "analisando matriz de confusao")
+X0 = df.loc[df["status"] == 0]
+X0 = X0.drop(["status"], axis=1)
+X1 = df.loc[df["status"] == 1]
+X1 = X1.drop(["status"], axis=1)
 
 """
+==============================================
+Analise dos postos das matrizes de covariancia
+==============================================
+"""
+
+print("Posto da matriz de covariancia classe 0: {}".format(rank_covmatrix(X0)))
+print("Posto da matriz de covariancia classe 1: {}".format(rank_covmatrix(X1)))
+
+"""
+============================================
+Desempenho geral, PCA e LDA sem normalizacao
+============================================
+"""
+
 ans = classify(classifiers, X, y, test_rate, rounds)
-sumary(ans, "Desempenho dos classificadores sem reducao de dimensionalidade")
-find_best_pca(dataset, classifiers, test_rate, "figures/precisao-pca.png")
+sumary(ans, "Desempenho geral")
+
+find_best_pca(dataset, classifiers, test_rate,
+              "figures/tc1-precisao-pca-geral.png")
+
 X_lda = reduction_lda(X, y, 1)
 ans = classify(classifiers, X_lda, y, test_rate, rounds)
-sumary(ans, "Desempenho dos classificadores com reducao usando LDA")
+sumary(ans, "Desempenho LDA")
+
+"""
+============================================
+Desempenho geral, PCA e LDA com normalizacao
+============================================
 """
 
-X_data = np.array(X)
-covm = np.cov(X_data.T)
-rank_covm = np.linalg.matrix_rank(covm)
-cond_covm = np.linalg.cond(covm)
-print("Shape da matriz de covariancia: {}".format(covm.shape))
-print("Posto da matriz de covariancia: {}".format(rank_covm))
-print("Cond da matrix de covariancia: {}".format(cond_covm))
-np.linalg.inv(np.array(covm))
+ans = classify(classifiers, X, y, test_rate, rounds, normalize=True)
+sumary(ans, "Desempenho geral (normalizado)")
 
+find_best_pca(dataset, classifiers, test_rate,
+              "figures/tc1-precisao-pca-normalizado.png", normalize=True)
 
+X_lda = reduction_lda(X, y, 1)
+ans = classify(classifiers, X_lda, y, test_rate, rounds, normalize=True)
+sumary(ans, "Desempenho LDA (normalizado)")
 
+"""
+====================================================================
+Desempenho geral, PCA e LDA com normalizacao e remocao de assimetria
+====================================================================
+"""
 
+ans = classify(classifiers, X, y, test_rate, rounds, normalize=True,
+               unskew=True)
+sumary(ans, "Desempenho geral (normalizado, unskew)")
 
+find_best_pca(dataset, classifiers, test_rate,
+              "figures/tc1-precisao-pca-normalizado-unskew.png", normalize=True,
+              unskew=True)
+
+X_lda = reduction_lda(X, y, 1)
+ans = classify(classifiers, X_lda, y, test_rate, rounds, normalize=True,
+               unskew=True)
+sumary(ans, "Desempenho LDA (normalizado, unskew)")
 

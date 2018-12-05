@@ -9,24 +9,47 @@ Requisitos: Python 3.5+, numpy, pandas, matplotlib, scikit-learn, seaborn
 """
 
 import sys
+import warnings
 import numpy as np
 import pandas as pd
 import seaborn as sb
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 from sklearn.cluster import k_means
 from sklearn.decomposition import PCA
+from sklearn.metrics import pairwise_distances
 from sklearn.metrics import confusion_matrix
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import PowerTransformer
+from sklearn.metrics import calinski_harabaz_score
 from sklearn.neighbors import NearestCentroid as DMC
 from sklearn.neighbors import KNeighborsClassifier as NN
 from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as CQG
 
-def kmeans_cluster(X, n=1000):
-	X_new, _, _ = k_means(X, n_clusters=n, n_jobs=-1)
+# Para desabilitar warnings chatos...
+warnings.filterwarnings("ignore")
+
+def rank_covmatrix(X):
+	X_data = np.array(X)
+	covm = np.cov(X_data.T)
+	rank_covm = np.linalg.matrix_rank(covm)
 	
-	return X_new
+	return rank_covm
+
+# INCOMPLETO
+def dunn_index(X, Y):
+	distances = pairwise_distances(X, Y)
+	mind = np.min(np.unique(distances))
+	maxd = 1
+	
+	return mind/maxd
+
+def reduction_kmeans(X, n=1000):
+	X_new, _, inertia = k_means(X, n_clusters=n, n_jobs=-1)
+	
+	return X_new, inertia
 
 def reduction_pca(X, y=None, n=None):
 	pca = PCA(n_components=n)
@@ -56,6 +79,14 @@ def do_normalize(X_train, X_test):
 	
 	return X_train, X_test
 
+def do_skewremoval(X_train, X_test):
+	transformer = PowerTransformer()
+	transformer.fit(X_train)
+	X_train = transformer.transform(X_train)
+	X_test = transformer.transform(X_test)
+	
+	return X_train, X_test
+
 def progress(count, total, status=''):
 	bar_len = 50
 	filled_len = int(round(bar_len * count / float(total)))
@@ -66,15 +97,21 @@ def progress(count, total, status=''):
 	sys.stdout.write("[%s] %s%s %s\r" % (bar, percents, "%", status))
 	sys.stdout.flush()
 
-def classify(classifiers, X, y, test_size, rounds, verbose=False, scale=False):
+def classify(classifiers, X, y, test_size, rounds, verbose=False,
+                                                   normalize=False,
+                                                   unskew=False):
+	
 	ans = {key: {"score" : [], "sens" : [], "spec" : []}
 	       for key, value in classifiers.items()}
 	
 	for i in range(rounds):
 		X_train, X_test, y_train, y_test = data_split(X, y, test_size=test_size)
 		for name, classifier in classifiers.items():
-			if scale:
+			if normalize:
 				X_train, X_test = do_normalize(X_train, X_test)
+			
+			if unskew:
+				X_train, X_test = do_skewremoval(X_train, X_test)
 			
 			classifier.fit(X_train, y_train)
 			score = classifier.score(X_test, y_test)
@@ -89,11 +126,13 @@ def classify(classifiers, X, y, test_size, rounds, verbose=False, scale=False):
 			ans[name]["spec"].append(spec)
 			
 			if verbose:
-				progress(i+1, rounds, "OK")
+				progress(i+1, rounds)
 	
 	return ans
 
-def find_best_pca(dataset, classifiers, test_rate, save_plot):
+def find_best_pca(dataset, classifiers, test_rate, save_plot, verbose=False,
+                                                              normalize=False,
+                                                              unskew=False):
 	df = pd.read_csv(dataset)
 	df = df.drop(["name"], axis=1)
 	X = df.drop(["status"], axis=1)
@@ -104,7 +143,9 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 	vector = range(1, len(X.columns)+1)
 	for n in vector:
 		X_red = reduction_pca(X, y, n)
-		ans = classify(classifiers, X_red, y, test_rate, 100, True)
+		ans = classify(classifiers, X_red, y, test_rate, 100, verbose,
+		                                                      normalize,
+		                                                      unskew)
 		anses.append(ans)
 		
 		data["NN"].append(round(np.mean(ans["NN"]["score"])*100, 2))
@@ -120,8 +161,7 @@ def find_best_pca(dataset, classifiers, test_rate, save_plot):
 	plt.xlabel("Número de Componentes")
 	plt.ylabel("Precisão (%)")
 	plt.ylim((65.0, 95.0))
-	plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09),
-               ncol=3, fancybox=True, shadow=True)
+	plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09), ncol=3)
 	
 	for d in data:
 		max_v = max(data[d])
