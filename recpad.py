@@ -51,6 +51,15 @@ def reduction_kmeans(X, n=1000):
 	
 	return X_new, inertia
 
+def clustering_kmeans(X, n=2):
+	kmeans = KMeans(n_clusters=n, n_init=40, max_iter=1000, n_jobs=-1)
+	labels = kmeans.fit_predict(X)
+	ch = calinski_harabaz_score(X, labels)
+	#dunn = dun_index(X, labels)
+	dunn = 0
+	
+	return ch, dunn
+
 def reduction_pca(X, y=None, n=None):
 	pca = PCA(n_components=n)
 	pca.fit(X)
@@ -70,6 +79,20 @@ def sensitivity(tp, fn):
 
 def specificity(tn, fp):
 	return tn / (tn + fp)
+
+def super_normalize(X):
+	scaler = StandardScaler()
+	scaler.fit(X)
+	X = scaler.transform(X)
+	
+	return X
+
+def super_unskew(X):
+	transformer = PowerTransformer(normalize=False)
+	transformer.fit(X)
+	X = transformer.transform(X)
+	
+	return X
 
 def do_normalize(X_train, X_test):
 	scaler = StandardScaler()

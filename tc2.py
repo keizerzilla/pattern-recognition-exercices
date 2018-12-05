@@ -15,6 +15,10 @@ Requisitos: recpad.py
 
 from recpad import *
 
+#==============================================
+# Desempenho geral, PCA e LDA sem normalizacao
+#==============================================
+
 sb.set()
 
 classifiers = {"NN"  : NN(n_neighbors=1),
@@ -38,13 +42,18 @@ X_c1 = X_c1.drop(["default-payment-next-month"], axis=1)
 print("Amostras da classe 0: {}".format(X_c0.shape))
 print("Amostras da classe 1: {}".format(X_c1.shape))
 
+#==================================================
+# Resultado de classificação com dados sem reducao
+#==================================================
+
 ans = classify(classifiers, X, y, test_size, rounds)
 sumary(ans, "TC2 - classificacao sem reducao de dados")
-"""
+
 ans = classify(classifiers, X, y, test_size, rounds, normalize=True)
 sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados)")
 
-ans = classify(classifiers, X, y, test_size, rounds, normalize=True, unskew=True)
+ans = classify(classifiers, X, y, test_size, rounds, normalize=True,
+               unskew=True)
 sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados, unskew)")
 """
 data = {"NN" : [], "DMC" : [], "CQG" : []}
@@ -109,4 +118,4 @@ plt.ylim((0.0, 100.0))
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09), ncol=3)
 plt.savefig("figures/tc2-evolucao-prototipos.png")
 plt.show()
-
+"""
