@@ -39,13 +39,29 @@ X_c0 = X_c0.drop(["default-payment-next-month"], axis=1)
 X_c1 = df.loc[df["default-payment-next-month"] == 1]
 X_c1 = X_c1.drop(["default-payment-next-month"], axis=1)
 
+X_trans = super_normalize(X)
+X_trans = super_unskew(X)
+X_trans = pd.DataFrame(X_trans, columns=X.columns)
+
 print("Amostras da classe 0: {}".format(X_c0.shape))
 print("Amostras da classe 1: {}".format(X_c1.shape))
 
+#================
+# Sobre os dados
+#================
+"""
+heatmap(X, "Correlação default-of-credit-card-clients.csv")
+stats = data_stats(X)
+stats.to_csv("data/tc2-datastats.csv")
+piechart(df, "default-payment-next-month", ["Pago", "Não Pago"],
+         "Proporção de amostras por classe default-of-credit-card-clients.csv")
+histogram(X, "Distribuição dos atributos default-of-credit-card-clients.csv")
+histogram(X_trans, "Distribuição dos atributos pré-processados default-of-credit-card-clients.csv")
+"""
 #==================================================
 # Resultado de classificação com dados sem reducao
 #==================================================
-
+"""
 ans = classify(classifiers, X, y, test_size, rounds)
 sumary(ans, "TC2 - classificacao sem reducao de dados")
 
@@ -55,11 +71,28 @@ sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados)")
 ans = classify(classifiers, X, y, test_size, rounds, normalize=True,
                unskew=True)
 sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados, unskew)")
+"""
 
-#=============================================================
-# Classificacao versus numero de prototipos - dados originais
-#=============================================================
+#===============================================
+# Teste preliminar - reducao com kmedias K=1000
+#===============================================
 
+print("classe 0...")
+X_c0_red, inertia0 = reduction_kmeans(X_c0, n=1000)
+print("classe 1...")
+X_c1_red, inertia1 = reduction_kmeans(X_c1, n=1000)
+X_red = np.concatenate((X_c0_red, X_c1_red))
+y_c0 = np.zeros((1000, ), dtype=int)
+y_c1 = np.ones((1000, ), dtype=int)
+y_red = np.concatenate((y_c0, y_c1))
+print("classificando...")
+ans = classify(classifiers, X_red, y_red, test_size, rounds)
+sumary(ans, "TC2 - desempenho com kmedias K=1000")
+
+#===========================================
+# Classificacao versus numero de prototipos
+#===========================================
+""""
 data = {"NN" : [], "DMC" : [], "CQG" : []}
 inertias = {"inertia0" : [], "inertia1" : []}
 n_init = 100
@@ -83,7 +116,8 @@ for n in vector:
 	y_c0 = np.zeros((n, ), dtype=int)
 	y_c1 = np.ones((n, ), dtype=int)
 	y_red = np.concatenate((y_c0, y_c1))
-
+	
+	print("classificando...")
 	ans = classify(classifiers, X_red, y_red, test_size, rounds)
 	
 	nn = round(np.mean(ans["NN"]["score"])*100, 2)
@@ -115,4 +149,4 @@ plt.ylabel("Precisão (%)")
 plt.ylim((0.0, 100.0))
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09), ncol=3)
 plt.show()
-
+"""

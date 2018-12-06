@@ -38,6 +38,22 @@ X0 = X0.drop(["status"], axis=1)
 X1 = df.loc[df["status"] == 1]
 X1 = X1.drop(["status"], axis=1)
 
+X_trans = super_normalize(X)
+X_trans = super_unskew(X)
+X_trans = pd.DataFrame(X_trans, columns=X.columns)
+
+#================
+# Sobre os dados
+#================
+
+heatmap(X, "Correlação parkinsons.data")
+stats = data_stats(X)
+stats.to_csv("data/tc1-datastats.csv")
+piechart(df, "status", ["Parkinson", "Saudável"],
+         "Proporção de amostras por classe parkinsons.data")
+histogram(X, "Distribuição dos atributos parkinsons.data")
+histogram(X_trans, "Distribuição dos atributos pré-processados parkinsons.data")
+
 #================================================
 # Analise dos postos das matrizes de covariancia
 #================================================

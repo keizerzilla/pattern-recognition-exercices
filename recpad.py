@@ -30,8 +30,55 @@ from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as CQG
 
-# Para desabilitar warnings chatos...
 warnings.filterwarnings("ignore")
+
+def heatmap(df, title):
+	corr = df.corr().abs()
+	annot = corr.round(decimals=2)
+	upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(np.bool))
+	to_drop = [c for c in upper.columns if any(upper[c] >= 0.9)]
+	super_corr = [c for c in upper.columns if any(upper[c] >= 0.98)]
+	print("drops sugeridos: " + str(to_drop))
+	print("super correlacoes: " + str(super_corr))
+	
+	sb.heatmap(corr, vmin=0, vmax=1.0, cmap="inferno", annot=annot)
+	plt.title(title)
+	plt.show()
+
+def data_stats(df):
+	mean = df.mean()
+	median = df.median()
+	minv = df.min()
+	maxv = df.max()
+	std = df.std()
+	
+	result = pd.concat([mean, median, minv, maxv, std], axis=1)
+	result.columns = ["Média", "Mediana", "Min", "Max", "Desvio"]
+	result = result.round(2)
+	
+	return result
+
+def pairplot(df, title):
+	sb.pairplot(df, markers="o", palette="GnBu_d", diag_kind="kde",
+		        plot_kws=dict(s=50, edgecolor="b", linewidth=1))
+	plt.subplots_adjust(left=0.06, bottom=0.07, right=0.98, top=0.92,
+	                    wspace=0.18, hspace=0.18)
+	plt.suptitle(title)
+	plt.show()
+
+def piechart(df, class_col, labels, title):
+	num = df[class_col].value_counts()
+	print(num)
+	num.plot.pie(labels=labels, autopct="%1.1f%%")
+	plt.title(title)
+	plt.ylabel("")
+	plt.show()
+
+def histogram(df, title):
+	df.hist()
+	plt.suptitle(title)
+	plt.subplots_adjust(0.16, 0.06, 0.86,0.90,0.30,0.68)
+	plt.show()
 
 def rank_covmatrix(X):
 	X_data = np.array(X)
@@ -127,18 +174,6 @@ def do_skewremoval(X_train, X_test):
 	X_test = transformer.transform(X_test)
 	
 	return X_train, X_test
-
-def data_stats(df):
-	mean = df.mean()
-	median = df.median()
-	minv = df.min()
-	maxv = df.max()
-	std = df.std()
-	
-	result = pd.concat([mean, median, minv, maxv, std], axis=1)
-	result.columns = ["Média", "Mediana", "Min", "Max", "Desvio"]
-	
-	return result
 
 def progress(count, total, status=''):
 	bar_len = 50

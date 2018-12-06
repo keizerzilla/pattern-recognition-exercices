@@ -11,13 +11,7 @@ X = np.array(df)
 # Relacionamento par-a-par entre os atributos
 #=============================================
 
-sb.pairplot(df, markers="o", palette="GnBu_d", diag_kind="kde",
-            plot_kws=dict(s=50, edgecolor="b", linewidth=1))
-plt.subplots_adjust(left=0.06, bottom=0.07, right=0.98, top=0.92, wspace=0.18,
-                    hspace=0.18)
-plt.suptitle("Relacionamentos par-a-par entre os atributos")
-plt.savefig("figures/tc3/tc3-pairplot.png")
-plt.close()
+pairplot(df, "Relacionamentos par-a-par entre os atributos")
 
 #=============================================================
 # Relacionamento par-a-par entre os atributos (transformados)
