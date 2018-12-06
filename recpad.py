@@ -19,7 +19,9 @@ from sklearn.cluster import k_means
 from sklearn.decomposition import PCA
 from sklearn.metrics import pairwise_distances
 from sklearn.metrics import confusion_matrix
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import davies_bouldin_score
 from sklearn.preprocessing import PowerTransformer
 from sklearn.metrics import calinski_harabaz_score
 from sklearn.neighbors import NearestCentroid as DMC
@@ -51,14 +53,23 @@ def reduction_kmeans(X, n=1000):
 	
 	return X_new, inertia
 
-def clustering_kmeans(X, n=2):
-	kmeans = KMeans(n_clusters=n, n_init=40, max_iter=1000, n_jobs=-1)
-	labels = kmeans.fit_predict(X)
+#def reduction_kmeans_class(X, n=1000):
+#	km = KMeans(n_clusters=n, n_jobs=-1, n_init=30)
+#	km = km.fit(X)
+#	X_new = km.cluster_centers_
+#	inertia = km.inertia_
+#	
+#	return X_new, inertia
+
+def clustering_kmeans(X, n):
+	km = KMeans(n_clusters=n, n_init=40, max_iter=1000, n_jobs=-1).fit(X)
+	labels = km.labels_
 	ch = calinski_harabaz_score(X, labels)
+	db = davies_bouldin_score(X, labels)
 	#dunn = dun_index(X, labels)
 	dunn = 0
 	
-	return ch, dunn
+	return ch, db, dunn
 
 def reduction_pca(X, y=None, n=None):
 	pca = PCA(n_components=n)
@@ -88,9 +99,16 @@ def super_normalize(X):
 	return X
 
 def super_unskew(X):
-	transformer = PowerTransformer(normalize=False)
+	transformer = PowerTransformer()
 	transformer.fit(X)
 	X = transformer.transform(X)
+	
+	return X
+
+def minmax_scaling(X):
+	scaler = MinMaxScaler()
+	scaler.fit(X)
+	X = scaler.transform(X)
 	
 	return X
 
@@ -109,6 +127,18 @@ def do_skewremoval(X_train, X_test):
 	X_test = transformer.transform(X_test)
 	
 	return X_train, X_test
+
+def data_stats(df):
+	mean = df.mean()
+	median = df.median()
+	minv = df.min()
+	maxv = df.max()
+	std = df.std()
+	
+	result = pd.concat([mean, median, minv, maxv, std], axis=1)
+	result.columns = ["Média", "Mediana", "Min", "Max", "Desvio"]
+	
+	return result
 
 def progress(count, total, status=''):
 	bar_len = 50

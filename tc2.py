@@ -55,7 +55,11 @@ sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados)")
 ans = classify(classifiers, X, y, test_size, rounds, normalize=True,
                unskew=True)
 sumary(ans, "TC2 - classificacao sem reducao de dados (normalizados, unskew)")
-"""
+
+#=============================================================
+# Classificacao versus numero de prototipos - dados originais
+#=============================================================
+
 data = {"NN" : [], "DMC" : [], "CQG" : []}
 inertias = {"inertia0" : [], "inertia1" : []}
 n_init = 100
@@ -70,21 +74,15 @@ for n in vector:
 
 	print("classe 0...")
 	X_c0_red, inertia0 = reduction_kmeans(X_c0, n=n)
-	#print("kmedias OK! Shape de X_red_c0: {}".format(X_c0_red.shape))
 
 	print("classe 1...")
 	X_c1_red, inertia1 = reduction_kmeans(X_c1, n=n)
-	#print("kmedias OK! Shape de X_red_c1: {}".format(X_c1_red.shape))
 
 	X_red = np.concatenate((X_c0_red, X_c1_red))
-	#print("Shape de X_red: {}".format(X_red.shape))
 
 	y_c0 = np.zeros((n, ), dtype=int)
 	y_c1 = np.ones((n, ), dtype=int)
 	y_red = np.concatenate((y_c0, y_c1))
-	#print("Shape de y_c0: {}".format(y_c0.shape))
-	#print("Shape de y_c1: {}".format(y_c1.shape))
-	#print("Shape de y_red: {}".format(y_red.shape))
 
 	ans = classify(classifiers, X_red, y_red, test_size, rounds)
 	
@@ -102,10 +100,10 @@ for n in vector:
 	print()
 
 df = pd.DataFrame.from_dict(data)
-df.to_csv("data/tc2_kmeans_{}.csv".format(ticks), index=False)
+df.to_csv("data/tc2-kmeans-{}.csv".format(ticks), index=False)
 
 idf = pd.DataFrame.from_dict(inertias)
-idf.to_csv("data/tc2_inertias_{}.csv".format(ticks), index=False)
+idf.to_csv("data/tc2-inertias-{}.csv".format(ticks), index=False)
 
 labels = [str(n) for n in vector]
 
@@ -116,6 +114,5 @@ plt.xlabel("Número de protótipos")
 plt.ylabel("Precisão (%)")
 plt.ylim((0.0, 100.0))
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.09), ncol=3)
-plt.savefig("figures/tc2-evolucao-prototipos.png")
 plt.show()
-"""
+
