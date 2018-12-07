@@ -17,14 +17,17 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 from sklearn.cluster import k_means
 from sklearn.decomposition import PCA
-from sklearn.metrics import pairwise_distances
+from sklearn.cluster import MiniBatchKMeans
+from sklearn.metrics import silhouette_score
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import davies_bouldin_score
 from sklearn.preprocessing import PowerTransformer
 from sklearn.metrics import calinski_harabaz_score
 from sklearn.neighbors import NearestCentroid as DMC
+from sklearn.metrics.pairwise import euclidean_distances
 from sklearn.neighbors import KNeighborsClassifier as NN
 from sklearn.model_selection import train_test_split as data_split
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
@@ -87,36 +90,22 @@ def rank_covmatrix(X):
 	
 	return rank_covm
 
-# INCOMPLETO
-def dunn_index(X, Y):
-	distances = pairwise_distances(X, Y)
-	mind = np.min(np.unique(distances))
-	maxd = 1
-	
-	return mind/maxd
-
 def reduction_kmeans(X, n=1000):
 	X_new, _, inertia = k_means(X, n_clusters=n, n_jobs=-1)
 	
 	return X_new, inertia
 
-#def reduction_kmeans_class(X, n=1000):
-#	km = KMeans(n_clusters=n, n_jobs=-1, n_init=30)
-#	km = km.fit(X)
-#	X_new = km.cluster_centers_
-#	inertia = km.inertia_
-#	
-#	return X_new, inertia
-
 def clustering_kmeans(X, n):
-	km = KMeans(n_clusters=n, n_init=40, max_iter=1000, n_jobs=-1).fit(X)
+	#km = KMeans(n_clusters=n, n_init=50, max_iter=2000, n_jobs=-1)
+	km = MiniBatchKMeans(n_clusters=n, n_init=50, max_iter=2000)
+	km = km.fit(X)
 	labels = km.labels_
+	
 	ch = calinski_harabaz_score(X, labels)
 	db = davies_bouldin_score(X, labels)
-	#dunn = dun_index(X, labels)
-	dunn = 0
+	dunn = silhouette_score(X, labels)
 	
-	return ch, db, dunn
+	return ch, db, dunn, labels, km.cluster_centers_
 
 def reduction_pca(X, y=None, n=None):
 	pca = PCA(n_components=n)
