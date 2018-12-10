@@ -24,6 +24,7 @@ sb.set()
 classifiers = {"NN"  : NN(n_neighbors=1),
                "DMC" : DMC(),
                "CQG" : CQG(store_covariance=True)}
+               
 dataset = "data/parkinsons.data"
 test_rate = 0.3
 rounds = 100
@@ -39,7 +40,7 @@ X1 = df.loc[df["status"] == 1]
 X1 = X1.drop(["status"], axis=1)
 
 X_trans = super_normalize(X)
-X_trans = super_unskew(X)
+X_trans = super_unskew(X_trans)
 X_trans = pd.DataFrame(X_trans, columns=X.columns)
 
 #================

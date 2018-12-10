@@ -51,7 +51,7 @@ print("Amostras da classe 1: {}".format(X_c1.shape))
 #================
 # Sobre os dados
 #================
-"""
+
 heatmap(X, "Correlação default-of-credit-card-clients.csv")
 stats = data_stats(X)
 stats.to_csv("data/tc2-datastats.csv")
@@ -59,7 +59,7 @@ piechart(df, "default-payment-next-month", ["Não Pago", "Pago"],
          "Proporção de amostras por classe default-of-credit-card-clients.csv")
 histogram(X, "Distribuição dos atributos default-of-credit-card-clients.csv")
 histogram(X_trans, "Distribuição dos atributos pré-processados")
-"""
+
 #==================================================
 # Resultado de classificação com dados sem reducao
 #==================================================

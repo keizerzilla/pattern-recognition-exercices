@@ -25,7 +25,7 @@ X = np.array(df)
 X_trans = super_normalize(X)
 X_trans = super_unskew(X_trans)
 X_trans = pd.DataFrame(X_trans, columns=cols)
-"""
+
 #================
 # Sobre os dados
 #================
@@ -34,11 +34,11 @@ heatmap(df, "Correlação nos dados desconhecidos")
 stats = data_stats(df)
 stats.to_csv("data/tc3-datastats.csv")
 pairplot(df, "Relacionamentos par-a-par entre os atributos")
-"""
+
 #=====================================================================
 # Calculando indices de validacao para diferentes numeros de clusters
 #=====================================================================
-"""
+
 data = {"n" : [], "ch" : [], "db" : [], "dunn" : []}
 for n in range(2, 21):
 	ch, db, dunn, _, _ = clustering_kmeans(X, n)
@@ -89,7 +89,6 @@ plt.xlabel("K")
 plt.ylabel("Valor")
 plt.xticks([n for n in range(2, 21)])
 plt.show()
-"""
 
 #=====================
 # analise estatistica
